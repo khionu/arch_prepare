@@ -1,0 +1,36 @@
+name: Archiso Workflow
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit to target'
+        required: true
+        type: string
+jobs:
+  preparer:
+    uses: ./.github/workflows/rust.yml
+    secrets: inherit
+  build:
+    runs-on: ubuntu-latest
+    needs: [preparer]
+    container: 
+      image: archlinux
+      options: --privileged
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install archiso tools
+        run: pacman -Sy --noconfirm archiso
+      - name: Download preparer
+        uses: actions/download-artifact@v4
+        with:
+          name: arch_prepare-${{ github.sha }}
+          path: tmp/arch_prepare
+      - run: chmod +x tmp/arch_prepare
+      - name: Build ISO
+        run: mkarchiso -v -w tmp/ -o out/ archiso/profile/
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-archiso-${{ github.sha }}
+          path: out/

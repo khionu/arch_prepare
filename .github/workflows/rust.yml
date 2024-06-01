@@ -1,0 +1,35 @@
+name: Preparer Workflow
+on:
+  pull_request_target:
+    branches: [main]
+  workflow_call:
+    outputs: 
+jobs:
+  checks:
+    if: github.event_name != 'workflow_call'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt, clippy
+      - name: Run rustfmt check
+        uses: actions-rust-lang/rustfmt@v1
+      - name: Run clippy
+        run: cargo clippy --no-deps
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Build preparer
+        run: cargo build --release
+      - name: Upload preparer
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch_prepare-${{ github.sha }}
+          path: target/release/arch_prepare
