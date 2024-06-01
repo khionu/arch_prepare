@@ -1,3 +1,7 @@
-fn main() {
+mod tui;
+
+#[tokio::main]
+async fn main() {
     println!("Hello, world!");
+    to
 }
